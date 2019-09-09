@@ -9,12 +9,6 @@ using namespace std;
 
 #include <curl/curl.h>
 
-#ifdef _DEBUG
-#	pragma comment (lib, "curl/libcurl_a_debug.lib")
-#else
-#	pragma comment (lib, "curl/libcurl_a.lib")
-#endif
-
 // Standard Nachrichtentext als Klartext
 static const string DEFAULT_PLAIN_TEXT[] = {
 			"Dies ist der Nachrichtentext der Mail.\r\n"
