@@ -13,10 +13,15 @@ static const string USER = "user:pass";
 
 int main(void)
 {
+	/*
+	 * Instanz der MailSender-Class erstellen.
+	 * Die Adresse des Mailservers mit Port sowie der zu verwendende Benutzer sind als Argumente angegeben.
+	 */
 	MailSender sender = MailSender(MAIL_SERVER, USER);
 
-	
-	sender.send("roland.paltz@gmx.net", "roland.paltz@gmx.net", "THIS IS CUSTOM PLAINTEXT", "<b>THIS IS CUSTOM HTML<\b>", "Image.png");
-	sender.send("roland.paltz@gmx.net", "roland.paltz@gmx.net", "", "", "Image.png");
-	return sender.send("roland.paltz@gmx.net", "roland.paltz@gmx.net");
+	//Senden einer Mail. Der MailSender kann mehrfach verwendet werden sollen mehrere Mails versandt werden. 
+	sender.send("roland.paltz@gmx.net", "roland.paltz@gmx.net", "Test-Betreff", "Inhalt als text", "<b>Inhalt als HTML<\b>", "Image.png");
+	//Sollen nur text-Mails versendet werden, so kann der HTML-Parameter leer gelassen werden.
+	sender.send("roland.paltz@gmx.net", "roland.paltz@gmx.net", "Test-Betreff ohne HTML", "Inhalt als Text", "", "Image.png");
+	return sender.send("roland.paltz@gmx.net", "roland.paltz@gmx.net", "Test-Betreff ohne Inhalt");
 };

@@ -9,24 +9,6 @@ using namespace std;
 
 #include <curl/curl.h>
 
-// Standard Nachrichtentext als Klartext
-static const string DEFAULT_PLAIN_TEXT[] = {
-			"Dies ist der Nachrichtentext der Mail.\r\n"
-			"\r\n"
-			"Dieser wird in der Regel nur von Mailclients dargestellt die kein HTML rendern koennen.\r\n"
-};
-
-
-static const string DEFAULT_HTML_TEXT[] = {
-	"<html>\r\n"
-	"<body>\r\n"
-	"<p>Dies ist der <b>HTML</b>-Teil der Nachricht.</p>"
-	"<br />\r\n"
-	"<p>Wenn alles funktioniert ist <b>DIESER TEXT</b> fett gedruckt.</p>"
-	"</body>\r\n"
-	"</html>\r\n"
-};
-
 MailSender::MailSender(string server, string user)
 {
 	this->server = server;
@@ -42,7 +24,7 @@ MailSender::~MailSender()
 	}
 }
 
-int MailSender::send(string from, string to, string textPlain, string textHtml, string file)
+int MailSender::send(string from, string to, string subject, string textPlain, string textHtml, string file)
 {
 	CURLcode res = CURLE_OK;
 	if (this->curl) {
@@ -62,7 +44,8 @@ int MailSender::send(string from, string to, string textPlain, string textHtml, 
 		toHeader += to;
 		string fromHeader = "From: ";
 		fromHeader += from;
-		string subjectHeader = "Subject: Process completed.";
+		string subjectHeader = "Subject: ";
+		subjectHeader += subject;
 
 		//Zuvor definierte header in Headerliste einfuegen
 		headers = curl_slist_append(headers, fromHeader.c_str());
@@ -73,7 +56,7 @@ int MailSender::send(string from, string to, string textPlain, string textHtml, 
 		*/
 		recipients = curl_slist_append(recipients, to.c_str());
 		headers = curl_slist_append(headers, toHeader.c_str());
-		
+
 
 		headers = curl_slist_append(headers, subjectHeader.c_str());
 
@@ -95,7 +78,6 @@ int MailSender::send(string from, string to, string textPlain, string textHtml, 
 
 		// Absender angeben, muss mit Empfaenger in header uebereinstimmen
 		curl_easy_setopt(this->curl, CURLOPT_MAIL_FROM, from.c_str());
-
 		curl_easy_setopt(this->curl, CURLOPT_MAIL_RCPT, recipients);
 
 		// Headerliste zur anfrage hinzufuegen
@@ -104,23 +86,27 @@ int MailSender::send(string from, string to, string textPlain, string textHtml, 
 		/* Mime-Nachricht initialisieren */
 		mime = curl_mime_init(this->curl);
 
-		/* HTML Nachricht einfuegen. */
-		part = curl_mime_addpart(mime);
-		if (textHtml != "") {
-			curl_mime_data(part, textHtml.c_str(), CURL_ZERO_TERMINATED);
-		}
-		else {
-			curl_mime_data(part, DEFAULT_HTML_TEXT->c_str(), CURL_ZERO_TERMINATED);
-		}
-		curl_mime_type(part, "text/html");
-
 		/* Text Nachricht einfuegen. */
-		part = curl_mime_addpart(mime);
 		if (textPlain != "") {
-			curl_mime_data(part, textPlain.c_str(), CURL_ZERO_TERMINATED);
+			//Neuen Abschnitt in MIME anlegen.
+			part = curl_mime_addpart(mime);
+			//Text mit suffix versehen (wird ansonsten in einigen Mailclients falsch dargestellt
+			string text = textPlain + "\r\n";
+			//Text in MIME Abschnitt einfuegen
+			curl_mime_data(part, text.c_str(), CURL_ZERO_TERMINATED);
+			//Mime-Typ setzen
+			curl_mime_type(part, "text/plain");
+			//Codierung setzen
+			curl_mime_encoder(part, "quoted-printable");
 		}
-		else {
-			curl_mime_data(part, DEFAULT_PLAIN_TEXT->c_str(), CURL_ZERO_TERMINATED);
+
+		/* HTML Nachricht einfuegen. Siehe oben*/
+		if (textHtml != "") {
+			part = curl_mime_addpart(mime);
+			string html = textHtml + "\r\n";
+			curl_mime_data(part, html.c_str(), CURL_ZERO_TERMINATED);
+			curl_mime_type(part, "text/html");
+			curl_mime_encoder(part, "quoted-printable");
 		}
 
 		if (file != "") {

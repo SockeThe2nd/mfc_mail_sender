@@ -16,6 +16,6 @@ public:
 	MailSender(string server, string user);
 	~MailSender();
 
-	int send(string from, string to, string textPlain = "", string textHtml = "", string file = "");
+	int send(string from, string to, string subject , string textPlain = "", string textHtml = "", string file = "");
 };
 
