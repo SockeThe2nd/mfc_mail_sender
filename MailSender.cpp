@@ -9,6 +9,13 @@ using namespace std;
 
 #include <curl/curl.h>
 
+/// <summary>
+/// MailSender-Klasse
+/// 
+/// Regelt den Versandt von Mails ueber den angegebenen Mailserver
+/// </summary>
+/// <param name="server">Mailserver. Format: smtp://serveradresse:port</param>
+/// <param name="user">Benutzer und Passwort. Format: user:pass</param>
 MailSender::MailSender(string server, string user)
 {
 	this->server = server;
@@ -24,6 +31,16 @@ MailSender::~MailSender()
 	}
 }
 
+/// <summary>
+/// Sendet eine Mail an die angegebene Adresse
+/// </summary>
+/// <param name="from">Absender-Adresse</param>
+/// <param name="to">Empfaenger-Adresse</param>
+/// <param name="subject">Betreff</param>
+/// <param name="textPlain">Mail-Inhalt als Klartext (optional)</param>
+/// <param name="textHtml">Mail-Inhalt als HTML (optional)</param>
+/// <param name="file">Pfad zum Anhang (optional)</param>
+/// <returns>CURL-Response-Code. 0 wenn erfolgreich</returns>
 int MailSender::send(string from, string to, string subject, string textPlain, string textHtml, string file)
 {
 	CURLcode res = CURLE_OK;
